@@ -1,0 +1,15 @@
+{
+  "machineType": "rotatory",
+  "data": {
+    "rotatory": {
+      "operating_speed_rpm": {
+        "measured": 2850,
+        "rated": 2900
+      },
+      "vibration_mm_s_rms": 1.5,
+      "temperature_celsius": 75,
+      "noise_db": 85,
+      "lubricant_condition": "Degraded"
+    }
+  }
+}

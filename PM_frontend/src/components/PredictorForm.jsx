@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const PredictorForm = () => {
   const [generating, setGenerating] = useState(false);
-
+  const [machineType, setMachineType] = useState('Machine 1');
+  const [report, setReport] = useState('');
+  
   const initialParams = {
     'Spindle Speed': '10',
     'Vibration Levels': '10',
@@ -13,7 +16,6 @@ const PredictorForm = () => {
   const [params, setParams] = useState(initialParams);
 
   const handleInputChange = (key, value) => {
-    // Allow empty string or valid numbers only
     if (/^\d*$/.test(value)) {
       setParams((prev) => ({ ...prev, [key]: value }));
     }
@@ -29,12 +31,35 @@ const PredictorForm = () => {
     setParams((prev) => ({ ...prev, [key]: (current - 1).toString() }));
   };
 
+  const handleSubmit = async () => {
+    setGenerating(true);
+    setReport('');
+
+    try {
+      const response = await axios.post('http://localhost:3000/analyze', {
+        machineType,
+        data: params,
+      });
+
+      setReport(response.data.report || 'No report received.');
+    } catch (error) {
+      console.error(error);
+      setReport('Failed to generate report.');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-gray-900 px-4">
       <div className="w-full max-w-3xl bg-gray-800 text-white shadow-2xl rounded-2xl p-8">
         <h2 className="text-2xl font-bold mb-4 text-blue-400">Select Machine</h2>
 
-        <select className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <select
+          value={machineType}
+          onChange={(e) => setMachineType(e.target.value)}
+          className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
           <option>Machine 1</option>
           <option>Machine 2</option>
         </select>
@@ -70,7 +95,7 @@ const PredictorForm = () => {
         </div>
 
         <button
-          onClick={() => setGenerating(true)}
+          onClick={handleSubmit}
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg mt-6 w-full transition duration-200"
         >
           Submit
@@ -79,6 +104,12 @@ const PredictorForm = () => {
         {generating && (
           <div className="mt-6 p-4 bg-blue-100 text-blue-900 text-center rounded-lg shadow-sm">
             Generating Report Based on Parameters and Context...
+          </div>
+        )}
+
+        {report && (
+          <div className="mt-6 p-4 bg-gray-700 text-white rounded-lg whitespace-pre-wrap">
+            {report}
           </div>
         )}
       </div>
