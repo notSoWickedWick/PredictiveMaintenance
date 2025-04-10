@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const ReportSection = ({ report }) => {
+  const textAreaRef = useRef(null);
+
+  useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = 'auto';
+      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
+    }
+  }, [report]);
+
   return (
     <div className="w-full flex items-center justify-center bg-gray-900 px-4">
       <div className="w-full max-w-4xl bg-gray-800 text-white shadow-2xl rounded-2xl p-8">
@@ -10,8 +19,9 @@ const ReportSection = ({ report }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-          <textarea 
-            className="w-full h-40 p-4 bg-gray-700 border border-gray-600 rounded-lg resize-none text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <textarea
+            ref={textAreaRef}
+            className="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg resize-y text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             readOnly
             value={report || 'No report generated yet.'}
           />
