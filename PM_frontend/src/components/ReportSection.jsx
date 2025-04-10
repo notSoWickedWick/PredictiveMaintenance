@@ -1,86 +1,83 @@
-import React, { useRef } from 'react';
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
-
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+import React from 'react';
+import jsPDF from 'jspdf';
 
 const ReportSection = ({ report }) => {
-  const reportRef = useRef();
-
   const handleDownload = () => {
-    const lines = report.split('\n').map(line => line.trim()).filter(Boolean);
+    const doc = new jsPDF();
+    const lines = report.split('\n');
 
-    const content = [
-      { text: 'Predictive Maintenance Report', style: 'header' },
-    ];
+    let y = 20;
+    doc.setFont('Helvetica');
+    doc.setFontSize(12);
 
     lines.forEach((line) => {
-      if (line.endsWith(':')) {
-        content.push({ text: line.replace(/^\*+/g, ''), style: 'subheader', margin: [0, 10, 0, 4] });
-      } else if (/^\d+\./.test(line)) {
-        content.push({ text: line.replace(/^\*+/g, ''), style: 'listItem' });
-      } else if (/^[-•]/.test(line)) {
-        content.push({ ul: [line.replace(/^[-•]\s*/, '')], style: 'listItem' });
+      const trimmed = line.trim();
+      if (!trimmed) {
+        y += 6;
+        return;
+      }
+
+      if (trimmed.match(/^[A-Z].*:\s*$/)) {
+        doc.setFont(undefined, 'bold');
+        doc.text(trimmed, 14, y);
+        doc.setFont(undefined, 'normal');
+        y += 8;
+      } else if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+        const text = trimmed.replace(/^[-•]\s*/, '');
+        const split = doc.splitTextToSize(`• ${text}`, 180);
+        doc.text(split, 14, y);
+        y += split.length * 6;
       } else {
-        content.push({ text: line.replace(/^\*+/g, ''), style: 'paragraph' });
+        const split = doc.splitTextToSize(trimmed, 180);
+        doc.text(split, 14, y);
+        y += split.length * 6;
+      }
+
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
       }
     });
 
-    const docDefinition = {
-      pageMargins: [40, 50, 40, 50],
-      content,
-      styles: {
-        header: {
-          fontSize: 20,
-          bold: true,
-          color: '#000000',
-          margin: [0, 0, 0, 20],
-        },
-        subheader: {
-          fontSize: 14,
-          bold: true,
-          color: '#2b2b2b',
-        },
-        paragraph: {
-          fontSize: 11,
-          color: '#000000',
-          margin: [0, 2],
-        },
-        listItem: {
-          fontSize: 11,
-          color: '#000000',
-          margin: [0, 2],
-        },
-      },
-      defaultStyle: {
-        font: 'Helvetica',
-      },
-      // ✅ Background removed to make PDF white
-    };
-
-    pdfMake.createPdf(docDefinition).download('Predictive_Maintenance_Report.pdf');
+    doc.save('Predictive_Maintenance_Report.pdf');
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-gray-900 text-white rounded-lg shadow-lg p-8">
-      <div ref={reportRef} className="prose prose-invert max-w-none">
-        <h2 className="text-2xl font-bold mb-4 text-blue-400">Predictive Maintenance Report</h2>
-        {report.split('\n').map((line, idx) => {
-          const trimmed = line.trim();
-          if (!trimmed) return <br key={idx} />;
-          if (trimmed.endsWith(':')) return <h3 key={idx} className="font-bold mt-4 text-blue-300">{trimmed.replace(/^\*+/, '')}</h3>;
-          if (/^\d+\./.test(trimmed)) return <p key={idx} className="ml-4">{trimmed.replace(/^\*+/, '')}</p>;
-          if (/^[-•]/.test(trimmed)) return <li key={idx}>{trimmed.replace(/^[-•]/, '')}</li>;
-          return <p key={idx}>{trimmed.replace(/^\*+/, '')}</p>;
-        })}
+    <div className="w-full bg-gray-800 text-white p-6 rounded-2xl shadow-xl mt-6 max-w-4xl mx-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-semibold text-blue-300">Predictive Maintenance Report</h3>
+        <button
+          onClick={handleDownload}
+          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-white font-medium transition duration-200"
+        >
+          Download PDF
+        </button>
       </div>
 
-      <button
-        onClick={handleDownload}
-        className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
-      >
-        Download Report as PDF
-      </button>
+      <div className="space-y-4 whitespace-pre-wrap">
+        {report.split('\n').map((line, idx) => {
+          const trimmed = line.trim();
+          if (!trimmed) return <div key={idx} className="h-2" />;
+
+          if (/^[A-Z].*:\s*$/.test(trimmed)) {
+            return (
+              <p key={idx} className="font-bold text-lg mt-4 mb-2 text-blue-400">
+                {trimmed}
+              </p>
+            );
+          }
+
+          if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+            return (
+              <p key={idx} className="ml-4 before:content-['•'] before:mr-2 text-white">
+                {trimmed.replace(/^[-•]\s*/, '')}
+              </p>
+            );
+          }
+
+          return <p key={idx}>{trimmed}</p>;
+        })}
+      </div>
     </div>
   );
 };
