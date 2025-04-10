@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ReportSection = () => {
+const ReportSection = ({ report }) => {
   return (
     <div className="w-full flex items-center justify-center bg-gray-900 px-4">
       <div className="w-full max-w-4xl bg-gray-800 text-white shadow-2xl rounded-2xl p-8">
@@ -13,7 +13,7 @@ const ReportSection = () => {
           <textarea 
             className="w-full h-40 p-4 bg-gray-700 border border-gray-600 rounded-lg resize-none text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             readOnly
-            value="Textual Prediction from RAG Architecture"
+            value={report || 'No report generated yet.'}
           />
 
           <div className="bg-gray-700 text-white p-6 rounded-lg flex items-center justify-center text-sm md:text-base">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import ReportSection from './ReportSection';
 
 const PredictorForm = () => {
   const [generating, setGenerating] = useState(false);
@@ -16,10 +17,11 @@ const PredictorForm = () => {
   const [params, setParams] = useState(initialParams);
 
   const handleInputChange = (key, value) => {
-    if (/^\d*$/.test(value)) {
+    if (/^\d*\.?\d*$/.test(value)) {
       setParams((prev) => ({ ...prev, [key]: value }));
     }
   };
+  
 
   const increase = (key) => {
     const current = parseInt(params[key]) || 0;
@@ -101,15 +103,15 @@ const PredictorForm = () => {
           Submit
         </button>
 
-        {generating && (
-          <div className="mt-6 p-4 bg-blue-100 text-blue-900 text-center rounded-lg shadow-sm">
-            Generating Report Based on Parameters and Context...
-          </div>
-        )}
-
-        {report && (
-          <div className="mt-6 p-4 bg-gray-700 text-white rounded-lg whitespace-pre-wrap">
-            {report}
+        {(generating || report) && (
+          <div className="mt-6">
+            {generating ? (
+              <div className="p-4 bg-blue-100 text-blue-900 text-center rounded-lg shadow-sm">
+                Generating Report Based on Parameters and Context...
+              </div>
+            ) : (
+              <ReportSection report={report} />
+            )}
           </div>
         )}
       </div>
