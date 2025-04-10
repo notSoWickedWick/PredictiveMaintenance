@@ -21,7 +21,6 @@ const PredictorForm = () => {
       setParams((prev) => ({ ...prev, [key]: value }));
     }
   };
-  
 
   const increase = (key) => {
     const current = parseInt(params[key]) || 0;
@@ -53,8 +52,9 @@ const PredictorForm = () => {
   };
 
   return (
-    <div className="w-full min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <div className="w-full max-w-3xl bg-gray-800 text-white shadow-2xl rounded-2xl p-8">
+    <div className="w-full min-h-screen flex flex-col items-center bg-gray-900 px-4">
+      {/* Predictor Form */}
+      <div className="w-full max-w-3xl bg-gray-800 text-white shadow-2xl rounded-2xl p-8 mt-8">
         <h2 className="text-2xl font-bold mb-4 text-blue-400">Select Machine</h2>
 
         <select
@@ -104,18 +104,16 @@ const PredictorForm = () => {
         </button>
       </div>
 
-      {(generating || report) && (
-          <div className="mt-6">
-            {generating ? (
-              <div className="p-4 bg-blue-100 text-blue-900 text-center rounded-lg shadow-sm">
-                Generating Report Based on Parameters and Context...
-              </div>
-            ) : (
-              <ReportSection report={report} />
-            )}
+      {/* Report Section - full width below the form */}
+      <div className="w-full mt-8">
+        {generating ? (
+          <div className="p-4 bg-blue-100 text-blue-900 text-center rounded-lg shadow-sm max-w-3xl mx-auto">
+            Generating Report Based on Parameters and Context...
           </div>
+        ) : (
+          report && <ReportSection report={report} />
         )}
-        
+      </div>
     </div>
   );
 };
