@@ -1,42 +1,46 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const ReportSection = ({ report }) => {
-  const textAreaRef = useRef(null);
+  const reportRef = useRef();
 
-  useEffect(() => {
-    if (textAreaRef.current) {
-      textAreaRef.current.style.height = 'auto';
-      textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
-    }
-  }, [report]);
+  const handleDownload = async () => {
+    const element = reportRef.current;
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save('Predictive_Maintenance_Report.pdf');
+  };
 
   return (
-    <div className="w-full flex items-center justify-center bg-gray-900 px-4">
-      <div className="w-full max-w-4xl bg-gray-800 text-white shadow-2xl rounded-2xl p-8">
-        <div className="w-full flex justify-between items-center mb-6">
-          <h3 className="text-xl font-semibold text-blue-400">Graphical View</h3>
-          <h3 className="text-xl font-semibold text-blue-400">Report</h3>
-        </div>
-
-        <div className="flex flex-col gap-6 w-full">
-          {/* Graph on top */}
-          <div className="bg-gray-700 text-white p-6 rounded-lg flex items-center justify-center text-sm md:text-base">
-            [Graphs Placeholder]
-          </div>
-
-          {/* Report below */}
-          <textarea
-            ref={textAreaRef}
-            className="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg resize-y text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            readOnly
-            value={report || 'No report generated yet.'}
-          />
-        </div>
-
-        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg mt-8 w-full transition duration-200">
-          Download Report
-        </button>
+    <div className="w-full max-w-4xl mx-auto bg-white text-black rounded-lg shadow-lg p-8">
+      <div ref={reportRef} className="prose max-w-none">
+        <h2 className="text-2xl font-bold mb-4">Predictive Maintenance Report</h2>
+        {report.split('\n').map((line, idx) => {
+          if (line.startsWith('*')) {
+            return <p key={idx} className="font-semibold mt-2">{line.replace(/^\*/, '').trim()}</p>;
+          } else if (line.startsWith('1.') || line.startsWith('2.') || line.startsWith('3.') || line.startsWith('4.')) {
+            return <p key={idx} className="ml-4">{line}</p>;
+          } else if (line.trim() === '') {
+            return <br key={idx} />;
+          } else {
+            return <p key={idx}>{line}</p>;
+          }
+        })}
       </div>
+
+      <button
+        onClick={handleDownload}
+        className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200"
+      >
+        Download Report as PDF
+      </button>
     </div>
   );
 };
