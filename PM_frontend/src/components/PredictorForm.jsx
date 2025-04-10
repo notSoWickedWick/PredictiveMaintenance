@@ -102,8 +102,9 @@ const PredictorForm = () => {
         >
           Submit
         </button>
+      </div>
 
-        {(generating || report) && (
+      {(generating || report) && (
           <div className="mt-6">
             {generating ? (
               <div className="p-4 bg-blue-100 text-blue-900 text-center rounded-lg shadow-sm">
@@ -114,7 +115,7 @@ const PredictorForm = () => {
             )}
           </div>
         )}
-      </div>
+        
     </div>
   );
 };
