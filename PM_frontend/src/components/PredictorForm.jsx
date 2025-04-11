@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ReportSection from './ReportSection';
+import Typewriter from 'typewriter-effect';
 
 const PredictorForm = () => {
   const [generating, setGenerating] = useState(false);
   const [machineType, setMachineType] = useState('Rotatory Device');
   const [report, setReport] = useState('');
+  const [inputData, setInputData] = useState({});
+  const [reportReady, setReportReady] = useState(false);
 
   const machineParamsMap = {
     'Rotatory Device': {
@@ -33,7 +36,6 @@ const PredictorForm = () => {
 
   const [params, setParams] = useState(getDefaultParams(machineType));
 
-  // Update parameter fields when machineType changes
   useEffect(() => {
     setParams(getDefaultParams(machineType));
   }, [machineType]);
@@ -57,6 +59,8 @@ const PredictorForm = () => {
   const handleSubmit = async () => {
     setGenerating(true);
     setReport('');
+    setReportReady(false);
+    setInputData(params);
 
     try {
       const response = await axios.post('http://localhost:3000/analyze', {
@@ -64,18 +68,31 @@ const PredictorForm = () => {
         data: params,
       });
 
+      if (response.data.report) {
+        const newReport = {
+          text: response.data.report,
+          date: new Date().toLocaleString(),
+        };
+      
+        const existingReports = JSON.parse(localStorage.getItem("savedReports") || "[]");
+        localStorage.setItem("savedReports", JSON.stringify([newReport, ...existingReports]));
+      
+        setReport(response.data.report);
+      }
+      
+
       setReport(response.data.report || 'No report received.');
     } catch (error) {
       console.error(error);
       setReport('Failed to generate report.');
     } finally {
       setGenerating(false);
+      setReportReady(true);
     }
   };
 
   return (
     <div className="w-full min-h-screen flex flex-col items-center bg-gray-900 px-4">
-      {/* Predictor Form */}
       <div className="w-full max-w-3xl bg-gray-800 text-white shadow-2xl rounded-2xl p-8 mt-8">
         <h2 className="text-2xl font-bold mb-4 text-blue-400">Select Machine</h2>
 
@@ -128,14 +145,21 @@ const PredictorForm = () => {
         </button>
       </div>
 
-      {/* Report Section - full width below the form */}
       <div className="w-full mt-8">
         {generating ? (
-          <div className="p-4 bg-blue-100 text-blue-900 text-center rounded-lg shadow-sm max-w-3xl mx-auto">
-            Generating Report Based on Parameters and Context...
+          <div className="p-4 bg-blue-100 text-blue-900 text-center rounded-lg shadow-sm max-w-3xl mx-auto text-lg font-medium">
+            <Typewriter
+              options={{
+                strings: ['Generating Report Based on Parameters and Context...'],
+                autoStart: true,
+                loop: false,
+                delay: 40,
+                cursor: '_',
+              }}
+            />
           </div>
         ) : (
-          report && <ReportSection report={report} />
+          reportReady && <ReportSection report={report} inputData={inputData} />
         )}
       </div>
     </div>
